@@ -18,113 +18,47 @@
 # BUILD AND VISUALIZE A DECISION TREE MODEL USING SCIKIT-LEARN TO CLASSIFY OR PREDICT OUTCOMES ON A CHOSEN DATASET.
 # DELIVERABLE: A NOTEBOOK WITH MODEL VISUALIZATION AND ANALYSIS.
 
-# In[14]:
 
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier, export_text, plot_tree
-import matplotlib.pyplot as plt
-import seaborn as sns
+from sklearn.tree import DecisionTreeClassifier, plot_tree, export_text
+from sklearn.metrics import accuracy_score, classification_report
 
+# Loading dataset (You can also replace this with your own dataset from(kaggle, weka etc))
+data = load_iris()
+X, y = data.data, data.target
 
+# Converting the  dataset into a DataFrame for preview
+iris_df = pd.DataFrame(X, columns=data.feature_names)
+iris_df['target'] = y
 
-# In[15]:
-
-
-# Loading the Iris dataset
-iris = load_iris()
-data = pd.DataFrame(iris.data, columns=iris.feature_names)
-data['target'] = iris.target
-
-# Displaying  the first few rows of the dataset
+# Dataset in preview also with the dataset along
 print("Dataset preview:")
-print(data.head())
+print(iris_df.head())
 
-
-# In[17]:
-
-
-#getting the top 10 values
-data.head(10)
-
-
-# In[18]:
-
-
-# geeting the 10 bottom values
-data.tail(10)
-
-
-# In[19]:
-
-
-# Spliting  the dataset into training and testing sets
-X = data[iris.feature_names]
-y = data['target']
+# Splited the dataset into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+# Initialize and train the Decision Tree model
+clf = DecisionTreeClassifier(criterion='gini', max_depth=3, random_state=42)
+clf.fit(X_train, y_train)
 
-# In[20]:
+# Predicted on the test data
+y_pred = clf.predict(X_test)
 
-
-# Initialize the Decision Tree model
-dt_model = DecisionTreeClassifier(random_state=42)
-
-
-
-# Train the model on the training data
-dt_model.fit(X_train, y_train)
-
-
-
-# Evaluate the model on the test data
-accuracy = dt_model.score(X_test, y_test)
-print(f"Model accuracy: {accuracy:.2f}")
-
-
-
-# Visualize feature importance
-feature_importances = dt_model.feature_importances_
-plt.figure(figsize=(10, 6))
-sns.barplot(x=feature_importances, y=iris.feature_names, palette="viridis")
-plt.title("Feature Importance")
-plt.xlabel("Importance")
-plt.ylabel("Features")
-plt.show()
-
-
-# In[21]:
-
+# Evaluated the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy:.2f}')
+print('Classification Report:\n', classification_report(y_test, y_pred))
 
 # Visualize the Decision Tree
-plt.figure(figsize=(16, 10))
-plot_tree(dt_model, feature_names=iris.feature_names, class_names=iris.target_names.tolist(), filled=True)
-plt.title("Decision Tree Visualization ")
+plt.figure(figsize=(12,8))
+plot_tree(clf, feature_names=data.feature_names, class_names=data.target_names.tolist(), filled=True)
 plt.show()
 
-
-
-# In[22]:
-
-
-# Export the tree in textual format
-tree_rules = export_text(dt_model, feature_names=iris.feature_names)
-print("Decision Tree Rules:")
-print(tree_rules)
-
-
-# Pairplot of the dataset to show relationships between features
-sns.pairplot(data, hue="target", palette="deep", diag_kind="kde", markers=["o", "s", "D"],
-             plot_kws={'alpha': 0.7})
-plt.suptitle("Pairplot of Iris Dataset", y=1.02)
-plt.show()
-
-
-# In[ ]:
-
-
-
-
+# Print Decision Tree Rules
+print(export_text(clf, feature_names=data.feature_names))
